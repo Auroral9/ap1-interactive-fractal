@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>交互式 2D 分形 · WebGL2</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>交互式分形演示 <span>AP1 · WebGL 2.0</span></h1>
+  <div class="legend">
+    <kbd>1</kbd>点云 <kbd>2</kbd>线框 <kbd>3</kbd>实体 <kbd>空格</kbd>生长暂停 <kbd>R</kbd>复位 <kbd>C</kbd>换色
+    · 左键拖动平移 · 滚轮缩放
+  </div>
+</header>
+
+<main>
+  <!-- 左侧参数面板 -->
+  <aside id="panel">
+    <section>
+      <h2>分形类型</h2>
+      <select id="fractalType" data-key="fractalType">
+        <option value="sierpinski">谢尔宾斯基垫片 (Sierpinski)</option>
+        <option value="ngon">n 边形混沌 (Chaos n-gon)</option>
+        <option value="tetra">四面体垫片 3D (Sierpinski Gasket)</option>
+        <option value="mandelbrot">Mandelbrot / Julia 集</option>
+      </select>
+      <div class="type-label">当前：<b id="typeLabel">谢尔宾斯基垫片</b></div>
+    </section>
+
+    <section>
+      <h2>渲染模式</h2>
+      <div class="modes">
+        <button class="mode-btn" data-mode="points">点云 · POINTS</button>
+        <button class="mode-btn" data-mode="wireframe">线框 · LINES</button>
+        <button class="mode-btn" data-mode="solid">实体 · TRIANGLES</button>
+      </div>
+    </section>
+
+    <section data-group="points">
+      <h2>顶点数（点云模式）</h2>
+      <input type="range" id="numPoints" data-key="numPoints" data-label="numPointsVal"
+             min="1000" max="300000" step="1000" value="20000">
+      <div class="row"><span>顶点数</span><span id="numPointsVal">20000</span></div>
+    </section>
+
+    <section data-group="depth">
+      <h2>递归深度（线框 / 实体）</h2>
+      <input type="range" id="depth" data-key="depth" data-label="depthVal"
+             min="0" max="6" step="1" value="4">
+      <div class="row"><span>深度</span><span id="depthVal">4</span></div>
+    </section>
+
+    <section data-group="ngon">
+      <h2>n 边形混沌参数</h2>
+      <select id="ngonSides" data-key="ngonSides">
+        <option value="3">三角形 (3)</option>
+        <option value="4">四边形 (4)</option>
+        <option value="5" selected>五边形 (5)</option>
+        <option value="6">六边形 (6)</option>
+        <option value="7">七边形 (7)</option>
+        <option value="8">八边形 (8)</option>
+      </select>
+      <input type="range" id="ratio" data-key="ratio" data-label="ratioVal"
+             min="0.2" max="0.7" step="0.001" value="0.618">
+      <div class="row"><span>收缩比</span><span id="ratioVal">0.618</span></div>
+    </section>
+
+    <section data-group="mandelbrot">
+      <h2>Mandelbrot / Julia</h2>
+      <select id="mbMode" data-key="mbMode">
+        <option value="0">Mandelbrot</option>
+        <option value="1">Julia</option>
+      </select>
+      <input type="range" id="mbIter" data-key="mbIter" data-label="mbIterVal"
+             min="50" max="2000" step="10" value="300">
+      <div class="row"><span>迭代次数</span><span id="mbIterVal">300</span></div>
+      <label>Julia 常数 c</label>
+      <div class="row">
+        <span>c.x</span>
+        <input type="range" id="mbCx" data-key="mbCx" data-label="mbCxVal"
+               min="-1" max="1" step="0.001" value="-0.4">
+        <span id="mbCxVal">-0.4</span>
+      </div>
+      <div class="row">
+        <span>c.y</span>
+        <input type="range" id="mbCy" data-key="mbCy" data-label="mbCyVal"
+               min="-1" max="1" step="0.001" value="0.6">
+        <span id="mbCyVal">0.6</span>
+      </div>
+      <select id="mbPalette" data-key="mbPalette">
+        <option value="0">经典</option>
+        <option value="1">暖色</option>
+        <option value="2">冷色</option>
+      </select>
+    </section>
+
+    <section>
+      <h2>显示</h2>
+      <input type="range" id="pointSize" data-key="pointSize" data-label="pointSizeVal"
+             min="1" max="40" step="1" value="3">
+      <div class="row"><span>点大小</span><span id="pointSizeVal">3</span></div>
+      <select id="colorScheme" data-key="colorScheme">
+        <option value="mono" selected>单色</option>
+        <option value="tricolor">按顶点分区</option>
+        <option value="gradient">位置渐变</option>
+        <option value="heat">热力图</option>
+        <option value="neon">霓虹</option>
+      </select>
+    </section>
+
+    <section data-group="anim">
+      <h2>逐点生长动画</h2>
+      <input type="range" id="speed" data-key="speed" data-label="speedVal"
+             min="1000" max="100000" step="1000" value="20000">
+      <div class="row"><span>生长速度(点/秒)</span><span id="speedVal">20000</span></div>
+      <div class="row">
+        <button id="animToggle" class="wide">暂停 / 继续（空格）</button>
+        <span id="animStatus">生长中</span>
+      </div>
+    </section>
+  </aside>
+
+  <!-- 右侧画布 -->
+  <section id="stage">
+    <canvas id="glCanvas"></canvas>
+  </section>
+</main>
+
+<footer id="info">FPS --</footer>
+
+<script src="js/utils/webgl-utils.js"></script>
+<script src="js/utils/initShaders.js"></script>
+<script src="js/utils/MV.js"></script>
+<script src="js/geometry/fractals.js"></script>
+<script src="js/palettes.js"></script>
+<script src="js/render/gasket2d.js"></script>
+<script src="js/render/tetra.js"></script>
+<script src="js/render/mandelbrot.js"></script>
+<script src="js/interaction/input.js"></script>
+<script src="js/ui/panel.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
