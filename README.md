@@ -5,7 +5,7 @@
 以及**鼠标平移缩放、键盘模式切换、逐点生长动画**等完整交互。另附三项扩展：
 任意 n 边形混沌、Mandelbrot/Julia 集探索器、3D 四面体垫片。
 
-> **在线运行地址：** 见文末「在线地址」一节（部署后填写）。
+> **在线运行地址：** https://auroral9.github.io/ap1-interactive-fractal/
 
 ---
 
@@ -178,4 +178,5 @@ ap1-fractal/
 
 ## 8. 在线地址
 
-> **（待部署）** 部署完成后在此填写可公开访问的 URL。
+- **在线运行：** https://auroral9.github.io/ap1-interactive-fractal/
+- **源码仓库：** https://github.com/Auroral9/ap1-interactive-fractal
